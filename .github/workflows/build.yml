@@ -21,7 +21,7 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
 
-      - name: Install Rust, Install Redoxer, then Build OS image
+      - name: Install Rust, Install Redoxer, Build OS image
         run: |
           # Install Rust
           curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -31,10 +31,6 @@ jobs:
           # Install Redoxer
           cargo install redoxer --locked
 
-          # Verify Redoxer
-          which redoxer
-          redoxer help
-
           # Build the OS image
           make image
 
@@ -42,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexionos-image
-          path: build/
+          path: build/ 
