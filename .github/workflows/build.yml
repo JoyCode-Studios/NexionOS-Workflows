@@ -21,16 +21,21 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
 
-      - name: Install Rust
+   - name: Install Rust
         run: |
           curl https://sh.rustup.rs -sSf | sh -s -- -y
-          source $HOME/.cargo/env
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Redoxer
         run: |
           source $HOME/.cargo/env
           cargo install redoxer --locked
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Verify Redoxer
+        run: |
+          source $HOME/.cargo/env
+          which redoxer
+          redoxer --version
 
       - name: Build OS image
         run: |
