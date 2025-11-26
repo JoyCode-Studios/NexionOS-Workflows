@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout NexionOS source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: JoyCode-Studios/NexionOS
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -30,7 +30,7 @@ jobs:
         run: make image
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nexionos-image
           path: build/
