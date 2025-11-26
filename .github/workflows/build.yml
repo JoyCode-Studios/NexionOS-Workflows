@@ -1,0 +1,35 @@
+name: Build NexionOS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout NexionOS source
+        uses: actions/checkout@v3
+        with:
+          repository: JoyCode-Studios/NexionOS
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
+
+      - name: Install Rust
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
+          source $HOME/.cargo/env
+
+      - name: Build OS image
+        run: make image
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: nexionos-image
+          path: build/
