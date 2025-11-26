@@ -26,6 +26,11 @@ jobs:
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           source $HOME/.cargo/env
 
+      - name: Install Redoxer
+        run: |
+          cargo install redoxer
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Build OS image
         run: make image
 
