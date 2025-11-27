@@ -31,11 +31,8 @@ jobs:
           # Install Redoxer
           cargo install redoxer --locked
 
-          # Point cookbook to the correct Redoxer binary
-          export COOKBOOK_REDOXER=$HOME/.cargo/bin/redoxer
-
-          # Build the OS image
-          make image
+          # Build the OS image with correct Redoxer path
+          COOKBOOK_REDOXER=$HOME/.cargo/bin/redoxer make image
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
