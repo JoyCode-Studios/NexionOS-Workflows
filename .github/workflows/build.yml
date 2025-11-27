@@ -1,48 +1,61 @@
 name: Build NexionOS
 
 on:
-  push:
-  workflow_dispatch:
+push:
+workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+build:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout NexionOS source
-        uses: actions/checkout@v4
-        with:
-          repository: JoyCode-Studios/NexionOS
-          token: ${{ secrets.GITHUB_TOKEN }}
-          submodules: true
+steps:
+  - name: Checkout NexionOS source
+    uses: actions/checkout@v4
+    with:
+      repository: JoyCode-Studios/NexionOS
+      token: ${{ secrets.GITHUB_TOKEN }}
+      submodules: true
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
+  - name: Install dependencies
+    run: |
+      sudo apt update
+      sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
+      # Clean up apt caches to save space/time
+      sudo apt clean
 
-      - name: Install Rust and Redoxer
-        run: |
-          # Install Rust
-          curl https://sh.rustup.rs -sSf | sh -s -- -y
-          source $HOME/.cargo/env
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+  - name: Install Rust and Redoxer
+    run: |
+      # Install Rust
+      curl https://sh.rustup.rs -sSf | sh -s -- -y
+      # IMPORTANT: We add the cargo bin directory to the GitHub PATH for subsequent steps
+      echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-          # Install Redoxer
-          cargo install redoxer --locked
+      # Install Redoxer
+      cargo install redoxer --locked
 
-      - name: Debug Redoxer path
-        run: |
-          which redoxer || echo "Redoxer not found in PATH"
-          ls -l $HOME/.cargo/bin/redoxer || echo "Binary missing"
+  - name: Debug Redoxer path
+    run: |
+      # Verify that 'which redoxer' now works
+      REDOXER_PATH=$(which redoxer)
+      echo "Path found by 'which': $REDOXER_PATH"
+      if [ -z "$REDOXER_PATH" ]; then
+        echo "::error::Redoxer not found in PATH after installation."
+        exit 1
+      fi
+      
+  - name: Build OS image
+    run: |
+      # Dynamically find the absolute path to redoxer
+      # This is much more robust than hardcoding $HOME, which can sometimes be inconsistent.
+      REDOXER_PATH=$(which redoxer)
+      
+      echo "Forcing COOKBOOK_REDOXER to: $REDOXER_PATH"
+      
+      # Pass the discovered path to make, which overrides the failing /bin/false default
+      make image COOKBOOK_REDOXER="$REDOXER_PATH"
 
-      - name: Build OS image
-        run: |
-          # Force COOKBOOK_REDOXER into make
-          make image COOKBOOK_REDOXER=$HOME/.cargo/bin/redoxer
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nexionos-image
-          path: build/
+  - name: Upload artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: nexionos-image
+      path: build/
