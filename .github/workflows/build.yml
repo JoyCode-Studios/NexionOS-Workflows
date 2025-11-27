@@ -16,6 +16,19 @@ jobs:
           path: nexionos
           submodules: true
 
+      # --- DISK CLEANUP TO FREE SPACE ---
+      - name: Free disk space
+        run: |
+          echo "Before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/local/share/powershell
+          echo "After cleanup:"
+          df -h
+
       # --- RUST SETUP AND CACHING ---
       - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
@@ -33,6 +46,13 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/nexionos/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
+      # --- TOOLCHAIN CACHE ---
+      - name: Cache Redox toolchain
+        uses: actions/cache@v4
+        with:
+          path: nexionos/build/toolchain
+          key: ${{ runner.os }}-toolchain-${{ hashFiles('nexionos/mk/prefix.mk') }}
 
       # --- DEPENDENCY INSTALLATION ---
       - name: Install System Dependencies
