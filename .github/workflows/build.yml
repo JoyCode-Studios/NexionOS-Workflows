@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      COOKBOOK_REDOXER: $HOME/.cargo/bin/redoxer
 
     steps:
       - name: Checkout NexionOS source
@@ -21,18 +23,15 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential qemu-system-x86 podman pkg-config libfuse3-dev libfuse-dev curl
 
-      - name: Install Rust, Install Redoxer, Build OS image
+      - name: Install Rust, Install Redoxer
         run: |
-          # Install Rust
           curl https://sh.rustup.rs -sSf | sh -s -- -y
           source $HOME/.cargo/env
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-          # Install Redoxer
           cargo install redoxer --locked
 
-          # Build the OS image with correct Redoxer path
-          COOKBOOK_REDOXER=$HOME/.cargo/bin/redoxer make image
+      - name: Build OS image
+        run: make image
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
