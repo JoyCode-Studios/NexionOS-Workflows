@@ -12,7 +12,6 @@ jobs:
       - name: Checkout NexionOS source
         uses: actions/checkout@v4
         with:
-          # FIX 1: Explicitly clone the NexionOS repository into the 'nexionos' subdirectory.
           repository: JoyCode-Studios/NexionOS
           path: nexionos
           submodules: true
@@ -31,7 +30,6 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          # Use hashFiles relative to the cloned directory
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/nexionos/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -44,37 +42,22 @@ jobs:
           sudo apt clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Redoxer and Resolve Path
+      - name: Install Redoxer
         run: |
-          # FIX 2: Manually ensure cargo bin is in PATH for this shell session before 'which' is called.
           export PATH="$HOME/.cargo/bin:$PATH"
-          
           cargo install redoxer --locked
-          
-          REDOXER_PATH=$(which redoxer)
-          
-          if [ -z "$REDOXER_PATH" ]; then
-            echo "::error::Redoxer executable not found!"
-            exit 1
-          fi
+          echo "PATH=$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
 
-          # Save the path to an environment variable
-          echo "COOKBOOK_REDOXER_PATH=$REDOXER_PATH" >> $GITHUB_ENV
-          
       # --- BUILD EXECUTION ---
       - name: Build OS image
-        # FIX 3: Set the working directory to the 'nexionos' subdirectory so 'make' can find the Makefile.
         working-directory: ./nexionos
         run: |
-          echo "Forcing COOKBOOK_REDOXER to: ${{ env.COOKBOOK_REDOXER_PATH }}"
-          
-          # Execute make with the fixed path and parallelism
-          make image COOKBOOK_REDOXER="${{ env.COOKBOOK_REDOXER_PATH }}" -j $(nproc)
+          export PATH="$HOME/.cargo/bin:$PATH"
+          make image -j $(nproc)
 
       # --- ARTIFACT UPLOAD ---
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: nexionos-image
-          # FIX 4: Path to the output directory, relative to the workspace root
           path: nexionos/build/
