@@ -21,11 +21,13 @@ jobs:
         run: |
           echo "Before cleanup:"
           df -h
+          # Remove large SDKs not needed for Rust builds
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf /usr/local/share/powershell
+          # Clear apt cache safely
+          sudo apt clean
+          sudo rm -rf /var/lib/apt/lists/*
           echo "After cleanup:"
           df -h
 
@@ -80,6 +82,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexionos-image
-          path: |
-            nexionos/build/*.img
-            nexionos/build/*.iso
+          path: nexionos/build/
